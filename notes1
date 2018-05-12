@@ -1,0 +1,35 @@
+open terminal : ctrl+alt+t
+write :python --> call python interpreter
+all files should be in workspace , because 'catkin' will make -->build + compile
+(sudo gedit ~/.bash) this makes sourcing for setup file
+gedit is a text editor-->install it by this command -->sudo apt-get install gedit
+
+sudo: gives admin rights to a command
+apt-get: is a program for installing other software
+intall: is an argument given to the "apt-get" program which indicates we want to install a software
+
+bashrc is a hidden file (thats why it starts with a dot .bashrc)
+this file is a bash script,,, it gets executed every time you open a terminal
+
+bash scripting language is the language you use when you write in the terminal..
+
+
+sudo apt-get install ros-kinetic-kobuki ros-kinetic-kobuki-core
+sudo apt-get install ros-kinetic-kobuki-gazebo
+
+ROS packages can be:
+1- source files: like the one I just sent
+2-binary files, which you install directly using apt-get
+
+cd catkin_ws
+catkin_make --> this compiles for all pkgs in workspace
+
+
+
+http://wiki.ros.org/ROS/Tutorials
+https://www.dropbox.com/s/ypen25kqbrubjkg/Worksheet%201%20-%20ROS%20Ecosystem%20and%20Parameter%20Server.pdf?dl=0
+http://www.ee.surrey.ac.uk/Teaching/Unix/
+
+
+
+

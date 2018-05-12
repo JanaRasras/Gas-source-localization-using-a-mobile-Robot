@@ -1,0 +1,137 @@
+<!-- -->
+<launch> 
+
+<!-- Kobuki Nodes (from minimal.launch -->
+  <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
+  <node pkg="nodelet" type="nodelet" name="mobile_base" args="load kobuki_node/KobukiNodelet mobile_base_nodelet_manager">
+    <rosparam file="$(find kobuki_node)/param/base.yaml" command="load"/>
+    <param name="base_frame" value="/base_footprint"/>
+    <param name="odom_frame" value="/odom"/>
+    <remap from="mobile_base/odom" to="odom"/>
+    <remap from="mobile_base/joint_states" to="joint_states"/>
+  </node>
+  
+  <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+    <rosparam command="load" file="$(find kobuki_node)/param/diagnostics.yaml" />
+  </node>
+  
+  <node pkg="nodelet" type="nodelet" name="cmd_vel_mux" args="load yocs_cmd_vel_mux/CmdVelMuxNodelet mobile_base_nodelet_manager">
+    <param name="yaml_cfg_file" value="$(find kobuki_keyop)/param/keyop_mux.yaml"/>
+    <remap from="cmd_vel_mux/output" to="mobile_base/commands/velocity"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="kobuki_safety_controller" args="load kobuki_safety_controller/SafetyControllerNodelet 
+mobile_base_nodelet_manager">
+    <remap from="kobuki_safety_controller/cmd_vel" to="cmd_vel_mux/safety_controller"/>
+    <remap from="kobuki_safety_controller/events/bumper" to="mobile_base/events/bumper"/>
+    <remap from="kobuki_safety_controller/events/cliff" to="mobile_base/events/cliff"/>
+    <remap from="kobuki_safety_controller/events/wheel_drop" to="mobile_base/events/wheel_drop"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="keyop_vel_smoother" args="load yocs_velocity_smoother/VelocitySmootherNodelet 
+mobile_base_nodelet_manager">
+    <rosparam file="$(find kobuki_keyop)/param/keyop_smoother.yaml" command="load"/>
+    <remap from="keyop_vel_smoother/smooth_cmd_vel" to="cmd_vel_mux/keyboard_teleop"/>
+    <remap from="keyop_vel_smoother/odometry" to="odom"/>
+    <remap from="keyop_vel_smoother/robot_cmd_vel" to="mobile_base/commands/velocity"/>
+  </node>
+  
+  <node pkg="kobuki_keyop" type="keyop" name="keyop" output="screen">
+    <remap from="keyop/motor_power" to="mobile_base/commands/motor_power"/>
+    <remap from="keyop/cmd_vel" to="keyop_vel_smoother/raw_cmd_vel"/>
+    <param name="linear_vel_step" value="0.05" type="double"/>
+    <param name="linear_vel_max" value="1.5" type="double"/>
+    <param name="angular_vel_step" value="0.33" type="double"/>
+    <param name="angular_vel_max" value="6.6" type="double"/>
+    <param name="wait_for_connection_" value="true" type="bool"/>
+  </node>
+ 
+
+<!-- Laser scanner Node  -->
+  <node name="urg_node" pkg="urg_node" type="urg_node" output="screen">
+    <param name="ip_address" value=""/>
+    <param name="serial_port" value="/dev/ttyACM0"/>
+    <param name="serial_baud" value="115200"/>
+    <param name="frame_id" value="/base_laser_link"/>
+    <param name="calibrate_time" value="true"/>
+    <param name="publish_intensity" value="false"/>
+    <param name="publish_multiecho" value="false"/>
+    <param name="angle_min" value="-1.5707963"/>
+    <param name="angle_max" value="1.5707963"/>
+	<remap from="scan" to="base_scan" />
+  </node>
+
+
+<!-- Frame transformations -->
+<node pkg="tf" type="static_transform_publisher" name="base_link_to_base_laser_link" args="0.115 0 .14 0 0 0 /base_link /base_laser_link 20" />  
+<node pkg="tf" type="static_transform_publisher" name="base_footprint_to_base_link" args="0 0 0 0 0 0  /base_footprint /base_link 20" />
+
+
+<!-- gmapping Node (Mapping+localization,SLAM) -->
+<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" >
+  <remap from="scan" to="base_scan"/>
+  <param name="map_frame" value="/map"/>
+  <param name="odom_frame" value="/odom"/>
+  <param name="base_frame" value="/base_link"/>
+  <param name="map_update_interval" value="2.0"/>
+  <param name="maxUrange" value="4.0"/>
+  <param name="maxRange" value="4.0"/>
+  <param name="sigma" value="0.05"/>
+  <param name="kernelSize" value="1"/>
+  <param name="lstep" value="0.05"/>
+  <param name="astep" value="0.05"/>
+  <param name="iterations" value="5"/>
+  <param name="lsigma" value="0.075"/>
+  <param name="ogain" value="3.0"/>
+  <param name="lskip" value="0"/>
+  <param name="srr" value="0.01"/>
+  <param name="srt" value="0.02"/>
+  <param name="str" value="0.01"/>
+  <param name="stt" value="0.02"/>
+  <param name="linearUpdate" value="0.01"/>
+  <param name="angularUpdate" value="0.01"/>
+  <param name="temporalUpdate" value="0.1"/>
+  <param name="resampleThreshold" value="0.5"/>
+  <param name="particles" value="30"/>
+  <param name="xmin" value="-5.0"/>
+  <param name="ymin" value="-5.0"/>
+  <param name="xmax" value="5.0"/>
+  <param name="ymax" value="5.0"/>
+  <param name="delta" value="0.1"/>
+  <param name="llsamplerange" value="0.01"/>
+  <param name="llsamplestep" value="0.01"/>
+  <param name="lasamplerange" value="0.005"/>
+  <param name="lasamplestep" value="0.005"/>
+  <param name="minimumScore" value="0.005"/>
+</node>
+
+
+
+<!-- move_base node (this node will open (bring up) all other nodes which are part of the navigation stack (a stack is a collection of packages) -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
+    <param name="footprint_padding" value="0.01" />
+    <param name="controller_frequency" value="5.0" />
+    <param name="controller_patience" value="3.0" />
+    <param name="oscillation_timeout" value="30.0" />
+    <param name="oscillation_distance" value="0.5" />
+    <param name="planner_patience" value="1" />
+    <param name="controller_patience" value="1" /> 
+    <remap from="cmd_vel" to="mobile_base/commands/velocity"/>
+    <param name="recovery_behavior_enabled" value="false" />
+    <rosparam file="$(find kustar_aus_testing)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find kustar_aus_testing)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find kustar_aus_testing)/param/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find kustar_aus_testing)/param/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find kustar_aus_testing)/param/base_local_planner_params.yaml" command="load" />  
+    <param name="global_costmap/global_frame" value="/map"/>
+    <param name="global_costmap/robot_base_frame" value="/base_link"/>
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="/base_laser_link"/>
+    <param name="global_costmap/laser_scan_sensor/topic" value="/base_scan"/>    
+    <param name="local_costmap/global_frame" value="/odom"/>
+    <param name="local_costmap/robot_base_frame" value="/base_link"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="/base_laser_link"/>
+    <param name="local_costmap/laser_scan_sensor/topic" value="/base_scan"/>
+    <param name="local_costmap/obstacle_layer/laser_scan_sensor/topic" value="/base_scan"/>
+  </node>
+
+ </launch>

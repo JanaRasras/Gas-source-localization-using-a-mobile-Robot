@@ -1,0 +1,32 @@
+
+**The needed packages**
+sudo apt-get install ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-kobuki ros-kinetic-kobuki-core ros-kinetic-kobuki-gazebo
+
+sudo apt-get install ros-kinetic-gmapping
+
+sudo apt-get install ros-kinetic-navigation
+
+sudo apt-get install python-opencv
+
+sudo apt-get install python-numpy
+
+sudo apt-get install python-scikits-learn
+
+rosrun rqt_tf_tree rqt_tf_tree
+
+
+**links**
+http://wiki.ros.org/kinetic/Installation/Ubuntu
+
+http://wiki.ros.org/catkin/Tutorials/create_a_workspace
+
+http://wiki.ros.org/kobuki/Tutorials/Installation
+
+http://wiki.ros.org/hokuyo_node/Tutorials/UsingTheHokuyoNode
+
+https://www.intorobotics.com/installing-and-setting-up-arduino-with-ros-kinetic-raspberry-pi-3/
+
+http://wiki.ros.org/rosserial_arduino/Tutorials/Arduino%20IDE%20Setup
+
+http://gazebosim.org/tutorials?tut=ros_installing
+
