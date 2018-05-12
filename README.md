@@ -28,14 +28,18 @@ sudo apt-get install ros-kinetic-gmapping
 
 **Running the codes**
 
-1- first you should run the launch file (base.launch by using the folowing comand:
+1- first you should run the launch file (base.launch )by using the folowing comand:
+
 roslaunch base.launch
 
 2- write this command which lets you see the map
+
 rosrun rviz rviz
 
 3- then you should build the map by moving the robot using a python script
+
 python go2point.py
 
 4- run the python script
+
 python janaseq.py
