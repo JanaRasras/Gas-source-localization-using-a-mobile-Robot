@@ -8,7 +8,7 @@ https://www.youtube.com/watch?v=x4V3KSUoVfY
 
 
 
-**Requirements**
+##Requirements
 
 The project has been tested on ROS Kinetic. The following requirements are needed :
 
@@ -28,7 +28,7 @@ sudo apt-get install ros-kinetic-gmapping
 
 **Running the codes**
 
-1- first you should run the launch file (base.launch )by using the folowing comand:
+1- first you should run the launch file (base.launch )by using the following command:
 
 roslaunch base.launch
 
